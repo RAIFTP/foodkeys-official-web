@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foodkeys – The Restaurant | Palakkutty, Koduvally</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        charcoal: '#333333',
+                        terracotta: '#E2725B',
+                        'terracotta-dark': '#C4593F',
+                        cream: '#FDF5E6',
+                        'cream-dark': '#F5E6CE',
+                        'cream-light': '#FFFAF0',
+                    },
+                    fontFamily: {
+                        playfair: ['Playfair Display', 'serif'],
+                        montserrat: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; background: #FDF5E6; color: #333333; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #FDF5E6; }
+        ::-webkit-scrollbar-thumb { background: #E2725B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C4593F; }
+
+        /* Animations */
+        .fade-up { opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .fade-left { opacity: 0; transform: translateX(-30px); transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .fade-left.visible { opacity: 1; transform: translateX(0); }
+        .fade-right { opacity: 0; transform: translateX(30px); transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .fade-right.visible { opacity: 1; transform: translateX(0); }
+        .scale-in { opacity: 0; transform: scale(0.9); transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .scale-in.visible { opacity: 1; transform: scale(1); }
+
+        /* Stagger children */
+        .stagger-children > * { transition-delay: calc(var(--i, 0) * 0.1s); }
+
+        /* Cart slide */
+        .cart-panel { transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .cart-panel.open { transform: translateX(0); }
+        .cart-overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .cart-overlay.open { opacity: 1; pointer-events: auto; }
+
+        /* Search modal */
+        .search-modal { opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .search-modal.open { opacity: 1; pointer-events: auto; }
+        .search-modal .search-box { transform: translateY(-20px) scale(0.95); transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .search-modal.open .search-box { transform: translateY(0) scale(1); }
+
+        /* Pulse for WhatsApp */
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+        .whatsapp-pulse::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; background: #25D366; animation: pulse-ring 2s ease-out infinite; z-index: -1; }
+
+        /* Hero parallax shimmer */
+        @keyframes shimmer { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+        .hero-shimmer { animation: shimmer 3s ease-in-out infinite; }
+
+        /* Category tab active indicator */
+        .cat-tab.active { color: #E2725B; border-color: #E2725B; }
+        .cat-tab { border-bottom: 3px solid transparent; transition: all 0.3s ease; }
+        .cat-tab:hover { color: #E2725B; }
+
+        /* Wishlist heart */
+        .heart-btn.liked iconify-icon { color: #E2725B; }
+        .heart-btn iconify-icon { color: #999; transition: color 0.3s ease, transform 0.3s ease; }
+        .heart-btn:hover iconify-icon { transform: scale(1.2); }
+        .heart-btn.liked iconify-icon { transform: scale(1.1); }
+
+        /* Video card play overlay */
+        .reel-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%); border-radius: inherit; pointer-events: none; }
+        .reel-card:hover .reel-play { transform: scale(1.15); }
+        .reel-play { transition: transform 0.3s ease; }
+
+        /* Toast */
+        .toast { transform: translateY(20px); opacity: 0; transition: all 0.4s ease; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* Quantity controls */
+        .qty-btn { transition: all 0.2s ease; }
+        .qty-btn:hover { background: #E2725B; color: white; }
+        .qty-btn:active { transform: scale(0.9); }
+
+        /* Menu card */
+        .menu-card { transition: all 0.3s ease; }
+        .menu-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(226,114,91,0.15); }
+        .menu-card:hover .menu-img { transform: scale(1.08); }
+        .menu-img { transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+
+        /* Smooth section scroll offset for fixed nav */
+        section[id] { scroll-margin-top: 80px; }
+
+        /* Mobile bottom bar */
+        @media (max-width: 768px) {
+            .mobile-bottom-bar { display: flex; }
+        }
+        @media (min-width: 769px) {
+            .mobile-bottom-bar { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- ============ TOAST CONTAINER ============ -->
+<div id="toastContainer" class="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-2 items-center pointer-events-none"></div>
+
+<!-- ============ NAVBAR ============ -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background: rgba(253,245,230,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(226,114,91,0.1);">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 h-[72px] flex items-center justify-between">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 bg-terracotta rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                <iconify-icon icon="fluent-emoji-flat:fork-and-knife" width="22"></iconify-icon>
+            </div>
+            <div>
+                <span class="font-playfair text-xl font-bold text-charcoal tracking-tight">Foodkeys</span>
+                <span class="hidden sm:inline text-xs text-charcoal/50 ml-1 font-montserrat">The Restaurant</span>
+            </div>
+        </a>
+
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex items-center gap-8">
+            <a href="#menu" class="text-sm font-medium text-charcoal/70 hover:text-terracotta transition-colors">Menu</a>
+            <a href="#reels" class="text-sm font-medium text-charcoal/70 hover:text-terracotta transition-colors">Reels</a>
+            <a href="#order" class="text-sm font-medium text-charcoal/70 hover:text-terracotta transition-colors">Order</a>
+            <a href="#location" class="text-sm font-medium text-charcoal/70 hover:text-terracotta transition-colors">Location</a>
+        </div>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+            <!-- Search -->
+            <button onclick="openSearch()" class="w-10 h-10 rounded-xl bg-charcoal/5 hover:bg-charcoal/10 flex items-center justify-center transition-colors" title="Search (Ctrl+K)" aria-label="Search menu">
+                <iconify-icon icon="lucide:search" width="18" class="text-charcoal/60"></iconify-icon>
+            </button>
+            <!-- Wishlist -->
+            <button onclick="toggleWishlistPanel()" class="w-10 h-10 rounded-xl bg-charcoal/5 hover:bg-charcoal/10 flex items-center justify-center transition-colors relative" title="Wishlist" aria-label="Wishlist">
+                <iconify-icon icon="lucide:heart" width="18" class="text-charcoal/60"></iconify-icon>
+                <span id="wishlistBadge" class="absolute -top-1 -right-1 w-5 h-5 bg-terracotta text-white text-[10px] font-bold rounded-full flex items-center justify-center hidden">0</span>
+            </button>
+            <!-- Cart -->
+            <button onclick="openCart()" class="h-10 px-4 rounded-xl bg-terracotta hover:bg-terracotta-dark text-white text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-terracotta/20" aria-label="Open cart">
+                <iconify-icon icon="lucide:shopping-bag" width="16"></iconify-icon>
+                <span id="cartCount" class="bg-white text-terracotta text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="relative min-h-[90vh] md:min-h-screen flex items-center overflow-hidden pt-[72px]">
+    <!-- Background Image -->
+    <div class="absolute inset-0">
+        <img src="https://picsum.photos/seed/foodkeys-biriyani-spice/1600/900" alt="Foodkeys ambiance" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/50 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-transparent"></div>
+    </div>
+
+    <!-- Floating food images -->
+    <div class="absolute top-32 right-10 md:right-32 w-24 h-24 md:w-36 md:h-36 rounded-2xl overflow-hidden shadow-2xl hero-shimmer rotate-6 hidden sm:block">
+        <img src="https://picsum.photos/seed/brosted-chicken-crispy/300/300" alt="" class="w-full h-full object-cover">
+    </div>
+    <div class="absolute bottom-32 right-20 md:right-48 w-20 h-20 md:w-28 md:h-28 rounded-2xl overflow-hidden shadow-2xl hero-shimmer -rotate-3 hidden sm:block" style="animation-delay: 1s;">
+        <img src="https://picsum.photos/seed/grill-kebab-arabic/300/300" alt="" class="w-full h-full object-cover">
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-0">
+        <div class="max-w-2xl">
+            <div class="fade-up" style="--i:0">
+                <span class="inline-flex items-center gap-2 bg-terracotta/20 backdrop-blur-md border border-terracotta/30 text-terracotta-light px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest mb-6">
+                    <iconify-icon icon="lucide:map-pin" width="14"></iconify-icon>
+                    Palakkutty, Koduvally
+                </span>
+            </div>
+            <h1 class="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-6 fade-up" style="--i:1">
+                Where Every <span class="text-terracotta">Flavor</span> Tells a Story
+            </h1>
+            <p class="text-lg md:text-xl text-white/70 font-light leading-relaxed mb-8 max-w-lg fade-up" style="--i:2">
+                From our legendary Beef Rib Biriyani to sizzling Arabic Grills — experience flavors that keep you coming back.
+            </p>
+            <div class="flex flex-wrap gap-4 fade-up" style="--i:3">
+                <a href="#menu" class="h-12 px-8 bg-terracotta hover:bg-terracotta-dark text-white font-semibold rounded-xl flex items-center gap-2 transition-all shadow-xl shadow-terracotta/30 hover:shadow-terracotta/40 hover:-translate-y-0.5">
+                    <iconify-icon icon="lucide:utensils" width="18"></iconify-icon>
+                    Explore Menu
+                </a>
+                <a href="#order" class="h-12 px-8 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-semibold rounded-xl flex items-center gap-2 transition-all hover:-translate-y-0.5">
+                    <iconify-icon icon="lucide:shopping-bag" width="18"></iconify-icon>
+                    Order Now
+                </a>
+            </div>
+            <!-- Stats -->
+            <div class="flex gap-8 mt-12 fade-up" style="--i:4">
+                <div>
+                    <span class="font-playfair text-3xl font-bold text-terracotta">4.8</span>
+                    <div class="flex items-center gap-1 mt-1">
+                        <iconify-icon icon="lucide:star" width="12" class="text-yellow-400"></iconify-icon>
+                        <iconify-icon icon="lucide:star" width="12" class="text-yellow-400"></iconify-icon>
+                        <iconify-icon icon="lucide:star" width="12" class="text-yellow-400"></iconify-icon>
+                        <iconify-icon icon="lucide:star" width="12" class="text-yellow-400"></iconify-icon>
+                        <iconify-icon icon="lucide:star" width="12" class="text-yellow-400"></iconify-icon>
+                    </div>
+                    <span class="text-xs text-white/50">2.4k Reviews</span>
+                </div>
+                <div class="w-px bg-white/20"></div>
+                <div>
+                    <span class="font-playfair text-3xl font-bold text-white">12+</span>
+                    <span class="text-xs text-white/50 block mt-1">Years Serving</span>
+                </div>
+                <div class="w-px bg-white/20"></div>
+                <div>
+                    <span class="font-playfair text-3xl font-bold text-white">50+</span>
+                    <span class="text-xs text-white/50 block mt-1">Menu Items</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40 animate-bounce">
+        <span class="text-[10px] uppercase tracking-widest">Scroll</span>
+        <iconify-icon icon="lucide:chevron-down" width="20"></iconify-icon>
+    </div>
+</section>
+
+<!-- ============ MENU SECTION ============ -->
+<section id="menu" class="py-16 md:py-24 bg-cream">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-12 fade-up">
+            <span class="inline-flex items-center gap-2 text-terracotta text-xs font-semibold uppercase tracking-widest mb-3">
+                <iconify-icon icon="lucide:chef-hat" width="16"></iconify-icon>
+                Our Menu
+            </span>
+            <h2 class="font-playfair text-3xl md:text-5xl font-bold text-charcoal tracking-tight">Crafted with <span class="text-terracotta">Passion</span></h2>
+            <p class="text-charcoal/50 mt-3 max-w-md mx-auto">Every dish is a masterpiece, prepared with the finest ingredients and authentic recipes.</p>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex overflow-x-auto gap-2 mb-10 pb-2 scrollbar-hide fade-up" id="categoryTabs">
+            <button class="cat-tab active whitespace-nowrap px-5 py-2.5 text-sm font-semibold rounded-xl border border-charcoal/10 bg-white shadow-sm transition-all" data-category="all" onclick="filterCategory('all', this)">
+                <iconify-icon icon="lucide:grid-3x3" width="14" class="mr-1.5 align-[-2px]"></iconify-icon>All Items
+            </button>
+            <button class="cat-tab whitespace-nowrap px-5 py-2.5 text-sm font-semibold rounded-xl border border-charcoal/10 bg-white shadow-sm transition-all" data-category="biriyani" onclick="filterCategory('biriyani', this)">
+                <iconify-icon icon="fluent-emoji-flat:curry-rice" width="14" class="mr-1.5 align-[-2px]"></iconify-icon>Beef Rib Biriyani
+            </button>
+            <button class="cat-tab whitespace-nowrap px-5 py-2.5 text-sm font-semibold rounded-xl border border-charcoal/10 bg-white shadow-sm transition-all" data-category="brosted" onclick="filterCategory('brosted', this)">
+                <iconify-icon icon="fluent-emoji-flat:poultry-leg" width="14" class="mr-1.5 align-[-2px]"></iconify-icon>Brosted Chicken
+            </button>
+            <button class="cat-tab whitespace-nowrap px-5 py-2.5 text-sm font-semibold rounded-xl border border-charcoal/10 bg-white shadow-sm transition-all" data-category="grills" onclick="filterCategory('grills', this)">
+                <iconify-icon icon="fluent-emoji-flat:fire" width="14" class="mr-1.5 align-[-2px]"></iconify-icon>Arabic Grills
+            </button>
+            <button class="cat-tab whitespace-nowrap px-5 py-2.5 text-sm font-semibold rounded-xl border border-charcoal/10 bg-white shadow-sm transition-all" data-category="veg" onclick="filterCategory('veg', this)">
+                <iconify-icon icon="fluent-emoji-flat:leafy-green" width="14" class="mr-1.5 align-[-2px]"></iconify-icon>Veg Specialities
+            </button>
+            <button class="cat-tab whitespace-nowrap px-5 py-2.5 text-sm font-semibold rounded-xl border border-charcoal/10 bg-white shadow-sm transition-all" data-category="sides" onclick="filterCategory('sides', this)">
+                <iconify-icon icon="lucide:sandwich" width="14" class="mr-1.5 align-[-2px]"></iconify-icon>Sides & More
+            </button>
+        </div>
+
+        <!-- Menu Grid -->
+        <div id="menuGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <!-- Items populated by JS -->
+        </div>
+
+        <!-- Empty state -->
+        <div id="menuEmpty" class="hidden text-center py-16">
+            <iconify-icon icon="lucide:search-x" width="48" class="text-charcoal/20 mb-4"></iconify-icon>
+            <p class="text-charcoal/40 font-medium">No items found in this category</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FEATURED REELS ============ -->
+<section id="reels" class="py-16 md:py-24 bg-charcoal relative overflow-hidden">
+    <!-- Decorative -->
+    <div class="absolute top-0 right-0 w-96 h-96 bg-terracotta/5 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-0 left-0 w-72 h-72 bg-terracotta/5 rounded-full blur-[100px]"></div>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+        <div class="text-center mb-12 fade-up">
+            <span class="inline-flex items-center gap-2 text-terracotta text-xs font-semibold uppercase tracking-widest mb-3">
+                <iconify-icon icon="lucide:instagram" width="16"></iconify-icon>
+                @foodkeys
+            </span>
+            <h2 class="font-playfair text-3xl md:text-5xl font-bold text-white tracking-tight">Good Food, <span class="text-terracotta">Good Mood</span></h2>
+            <p class="text-white/40 mt-3 max-w-md mx-auto">Behind the scenes, celebrity visits, and sizzling preparations — straight from our kitchen.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+            <div class="reel-card relative rounded-2xl overflow-hidden aspect-[9/16] group cursor-pointer scale-in" style="--i:0" onclick="showToast('Reel playing: Beef Rib Biriyani preparation 🔥')">
+                <img src="https://picsum.photos/seed/reel-biriyani-prep/400/700" alt="Biriyani prep reel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10"></div>
+                <div class="absolute inset-0 flex items-center justify-center z-20">
+                    <div class="reel-play w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+                        <iconify-icon icon="lucide:play" width="24" class="text-white ml-1"></iconify-icon>
+                    </div>
+                </div>
+                <div class="absolute bottom-4 left-4 right-4 z-20">
+                    <p class="text-white text-sm font-semibold">Beef Rib Biriyani Prep</p>
+                    <p class="text-white/50 text-xs mt-0.5">12.4k views</p>
+                </div>
+                <span class="absolute top-3 right-3 z-20 bg-terracotta/90 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase">Viral</span>
+            </div>
+
+            <div class="reel-card relative rounded-2xl overflow-hidden aspect-[9/16] group cursor-pointer scale-in" style="--i:1" onclick="showToast('Reel playing: Celebrity visit 🌟')">
+                <img src="https://picsum.photos/seed/reel-celebrity-visit/400/700" alt="Celebrity visit reel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10"></div>
+                <div class="absolute inset-0 flex items-center justify-center z-20">
+                    <div class="reel-play w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+                        <iconify-icon icon="lucide:play" width="24" class="text-white ml-1"></iconify-icon>
+                    </div>
+                </div>
+                <div class="absolute bottom-4 left-4 right-4 z-20">
+                    <p class="text-white text-sm font-semibold">Celebrity Night</p>
+                    <p class="text-white/50 text-xs mt-0.5">8.7k views</p>
+                </div>
+            </div>
+
+            <div class="reel-card relative rounded-2xl overflow-hidden aspect-[9/16] group cursor-pointer scale-in" style="--i:2" onclick="showToast('Reel playing: Brosted Chicken ASMR 🍗')">
+                <img src="https://picsum.photos/seed/reel-brosted-asmr/400/700" alt="Brosted chicken reel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10"></div>
+                <div class="absolute inset-0 flex items-center justify-center z-20">
+                    <div class="reel-play w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+                        <iconify-icon icon="lucide:play" width="24" class="text-white ml-1"></iconify-icon>
+                    </div>
+                </div>
+                <div class="absolute bottom-4 left-4 right-4 z-20">
+                    <p class="text-white text-sm font-semibold">Brosted Chicken ASMR</p>
+                    <p class="text-white/50 text-xs mt-0.5">15.2k views</p>
+                </div>
+                <span class="absolute top-3 right-3 z-20 bg-yellow-500/90 text-charcoal text-[10px] font-bold px-2 py-1 rounded-md uppercase">Trending</span>
+            </div>
+
+            <div class="reel-card relative rounded-2xl overflow-hidden aspect-[9/16] group cursor-pointer scale-in" style="--i:3" onclick="showToast('Reel playing: Arabic Grill sizzle 🥩')">
+                <img src="https://picsum.photos/seed/reel-arabic-grill/400/700" alt="Arabic grill reel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10"></div>
+                <div class="absolute inset-0 flex items-center justify-center z-20">
+                    <div class="reel-play w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+                        <iconify-icon icon="lucide:play" width="24" class="text-white ml-1"></iconify-icon>
+                    </div>
+                </div>
+                <div class="absolute bottom-4 left-4 right-4 z-20">
+                    <p class="text-white text-sm font-semibold">Arabic Grill Sizzle</p>
+                    <p class="text-white/50 text-xs mt-0.5">6.3k views</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-10 fade-up">
+            <a href="https://instagram.com/foodkeys" target="_blank" class="inline-flex items-center gap-2 text-white/60 hover:text-terracotta text-sm font-medium transition-colors">
+                Follow us on Instagram
+                <iconify-icon icon="lucide:arrow-right" width="16"></iconify-icon>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============ ORDER NOW SECTION ============ -->
+<section id="order" class="py-16 md:py-24 bg-cream relative overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-terracotta/5 rounded-full blur-[100px]"></div>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+        <div class="grid md:grid-cols-2 gap-10 items-center">
+            <div class="fade-left">
+                <span class="inline-flex items-center gap-2 text-terracotta text-xs font-semibold uppercase tracking-widest mb-3">
+                    <iconify-icon icon="lucide:shopping-bag" width="16"></iconify-icon>
+                    Order Now
+                </span>
+                <h2 class="font-playfair text-3xl md:text-5xl font-bold text-charcoal tracking-tight mb-4">
+                    Cravings <span class="text-terracotta">Delivered</span><br>to Your Doorstep
+                </h2>
+                <p class="text-charcoal/50 leading-relaxed mb-8 max-w-md">
+                    Pick your favorites, build your cart, and checkout via WhatsApp. It's that simple — no apps, no hassle, just great food.
+                </p>
+
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-terracotta/10 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                            <iconify-icon icon="lucide:mouse-pointer-click" width="18" class="text-terracotta"></iconify-icon>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-charcoal text-sm">1. Browse & Add</h4>
+                            <p class="text-charcoal/50 text-sm">Explore our menu and add items to your cart</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-terracotta/10 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                            <iconify-icon icon="lucide:shopping-cart" width="18" class="text-terracotta"></iconify-icon>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-charcoal text-sm">2. Review Your Cart</h4>
+                            <p class="text-charcoal/50 text-sm">Check quantities and subtotal in the sliding cart</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-terracotta/10 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+                            <iconify-icon icon="lucide:send" width="18" class="text-terracotta"></iconify-icon>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-charcoal text-sm">3. WhatsApp Checkout</h4>
+                            <p class="text-charcoal/50 text-sm">Your order is sent directly to our WhatsApp line</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="openCart()" class="h-12 px-8 bg-[#25D366] hover:bg-[#1ebe57] text-white font-semibold rounded-xl flex items-center gap-2 transition-all shadow-xl shadow-[#25D366]/20 hover:shadow-[#25D366]/30">
+                    <iconify-icon icon="lucide:message-circle" width="18"></iconify-icon>
+                    Open Cart & Order
+                </button>
+            </div>
+
+            <div class="fade-right">
+                <div class="relative">
+                    <div class="bg-white rounded-3xl shadow-2xl shadow-charcoal/5 p-6 border border-charcoal/5">
+                        <div class="flex items-center justify-between mb-5">
+                            <h3 class="font-playfair text-lg font-bold text-charcoal">Your Cart</h3>
+                            <span class="text-xs text-charcoal/40 font-medium" id="orderPreviewCount">0 items</span>
+                        </div>
+                        <div id="orderPreviewItems" class="space-y-3 mb-5 max-h-64 overflow-y-auto">
+                            <div class="text-center py-8">
+                                <iconify-icon icon="lucide:shopping-bag" width="32" class="text-charcoal/15 mb-2"></iconify-icon>
+                                <p class="text-charcoal/30 text-sm">Your cart is empty</p>
+                                <a href="#menu" class="text-terracotta text-xs font-semibold mt-1 inline-block hover:underline">Browse Menu →</a>
+                            </div>
+                        </div>
+                        <div class="border-t border-charcoal/10 pt-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-sm text-charcoal/50">Subtotal</span>
+                                <span class="font-bold text-charcoal" id="orderPreviewTotal">₹0</span>
+                            </div>
+                            <button onclick="checkoutWhatsApp()" class="w-full h-11 bg-[#25D366] hover:bg-[#1ebe57] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                                <iconify-icon icon="lucide:message-circle" width="16"></iconify-icon>
+                                Send to WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Decorative -->
+                    <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-terracotta/10 rounded-full blur-xl"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ LOCATION SECTION ============ -->
+<section id="location" class="py-16 md:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+        <div class="text-center mb-12 fade-up">
+            <span class="inline-flex items-center gap-2 text-terracotta text-xs font-semibold uppercase tracking-widest mb-3">
+                <iconify-icon icon="lucide:map-pin" width="16"></iconify-icon>
+                Find Us
+            </span>
+            <h2 class="font-playfair text-3xl md:text-5xl font-bold text-charcoal tracking-tight">Visit <span class="text-terracotta">Foodkeys</span></h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-10">
+            <!-- Location Card -->
+            <div class="bg-cream rounded-2xl p-6 border border-charcoal/5 fade-up" style="--i:0">
+                <div class="w-12 h-12 bg-terracotta/10 rounded-xl flex items-center justify-center mb-4">
+                    <iconify-icon icon="lucide:map-pin" width="22" class="text-terracotta"></iconify-icon>
+                </div>
+                <h3 class="font-playfair text-lg font-bold text-charcoal mb-2">Address</h3>
+                <p class="text-charcoal/50 text-sm leading-relaxed">Foodkeys - The Restaurant<br>Palakkutty, Koduvally<br>Kozhikode, Kerala 673572</p>
+                <a href="https://maps.google.com/?q=Palakkutty+Koduvally" target="_blank" class="inline-flex items-center gap-1 text-terracotta text-sm font-semibold mt-3 hover:underline">
+                    Get Directions <iconify-icon icon="lucide:external-link" width="14"></iconify-icon>
+                </a>
+            </div>
+
+            <!-- Hours Card -->
+            <div class="bg-cream rounded-2xl p-6 border border-charcoal/5 fade-up" style="--i:1">
+                <div class="w-12 h-12 bg-terracotta/10 rounded-xl flex items-center justify-center mb-4">
+                    <iconify-icon icon="lucide:clock" width="22" class="text-terracotta"></iconify-icon>
+                </div>
+                <h3 class="font-playfair text-lg font-bold text-charcoal mb-2">Opening Hours</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-charcoal/50">Mon - Sun</span>
+                        <span class="text-charcoal font-semibold">11:00 AM – 11:30 PM</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-charcoal/50">Lunch Special</span>
+                        <span class="text-charcoal font-semibold">12:00 – 3:30 PM</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-charcoal/50">Dinner</span>
+                        <span class="text-charcoal font-semibold">6:00 – 11:00 PM</span>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-green-600 text-xs font-semibold">Open Now</span>
+                </div>
+            </div>
+
+            <!-- Parking & Amenities Card -->
+            <div class="bg-cream rounded-2xl p-6 border border-charcoal/5 fade-up" style="--i:2">
+                <div class="w-12 h-12 bg-terracotta/10 rounded-xl flex items-center justify-center mb-4">
+                    <iconify-icon icon="lucide:car" width="22" class="text-terracotta"></iconify-icon>
+                </div>
+                <h3 class="font-playfair text-lg font-bold text-charcoal mb-2">Amenities</h3>
+                <div class="space-y-2.5">
+                    <div class="flex items-center gap-2.5 text-sm">
+                        <iconify-icon icon="lucide:check-circle" width="16" class="text-green-500 shrink-0"></iconify-icon>
+                        <span class="text-charcoal/60">Ample Free Parking</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-sm">
+                        <iconify-icon icon="lucide:check-circle" width="16" class="text-green-500 shrink-0"></iconify-icon>
+                        <span class="text-charcoal/60">AC Family Section</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-sm">
+                        <iconify-icon icon="lucide:check-circle" width="16" class="text-green-500 shrink-0"></iconify-icon>
+                        <span class="text-charcoal/60">Outdoor Seating</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-sm">
+                        <iconify-icon icon="lucide:check-circle" width="16" class="text-green-500 shrink-0"></iconify-icon>
+                        <span class="text-charcoal/60">WiFi Available</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-sm">
+                        <iconify-icon icon="lucide:check-circle" width="16" class="text-green-500 shrink-0"></iconify-icon>
+                        <span class="text-charcoal/60">Card & UPI Payments</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Maps Embed -->
+        <div class="rounded-2xl overflow-hidden shadow-xl shadow-charcoal/5 border border-charcoal/5 fade-up">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3914.5!2d75.95!3d11.35!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sPalakkutty%2C%20Koduvally!5e0!3m2!1sen!2sin!4v1"
+                width="100%"
+                height="350"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="Foodkeys Location Map"
+            ></iframe>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-charcoal py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+        <div class="grid md:grid-cols-4 gap-10 mb-12">
+            <div class="md:col-span-2">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-terracotta rounded-xl flex items-center justify-center">
+                        <iconify-icon icon="fluent-emoji-flat:fork-and-knife" width="22"></iconify-icon>
+                    </div>
+                    <span class="font-playfair text-2xl font-bold text-white">Foodkeys</span>
+                </div>
+                <p class="text-white/40 text-sm leading-relaxed max-w-sm mb-4">
+                    Where every flavor tells a story. Serving authentic Kerala & Arabic cuisine in the heart of Palakkutty, Koduvally since 2012.
+                </p>
+                <div class="flex gap-3">
+                    <a href="#" class="w-10 h-10 bg-white/5 hover:bg-terracotta/20 border border-white/10 rounded-xl flex items-center justify-center transition-colors" aria-label="Instagram">
+                        <iconify-icon icon="lucide:instagram" width="18" class="text-white/60"></iconify-icon>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-white/5 hover:bg-terracotta/20 border border-white/10 rounded-xl flex items-center justify-center transition-colors" aria-label="Facebook">
+                        <iconify-icon icon="lucide:facebook" width="18" class="text-white/60"></iconify-icon>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-white/5 hover:bg-terracotta/20 border border-white/10 rounded-xl flex items-center justify-center transition-colors" aria-label="YouTube">
+                        <iconify-icon icon="lucide:youtube" width="18" class="text-white/60"></iconify-icon>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-white/5 hover:bg-[#25D366]/20 border border-white/10 rounded-xl flex items-center justify-center transition-colors" aria-label="WhatsApp">
+                        <iconify-icon icon="lucide:message-circle" width="18" class="text-white/60"></iconify-icon>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Quick Links</h4>
+                <div class="space-y-2.5">
+                    <a href="#menu" class="block text-white/40 hover:text-terracotta text-sm transition-colors">Menu</a>
+                    <a href="#reels" class="block text-white/40 hover:text-terracotta text-sm transition-colors">Reels</a>
+                    <a href="#order" class="block text-white/40 hover:text-terracotta text-sm transition-colors">Order Now</a>
+                    <a href="#location" class="block text-white/40 hover:text-terracotta text-sm transition-colors">Location</a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Contact</h4>
+                <div class="space-y-2.5">
+                    <a href="tel:+919876543210" class="flex items-center gap-2 text-white/40 hover:text-terracotta text-sm transition-colors">
+                        <iconify-icon icon="lucide:phone" width="14"></iconify-icon>+91 98765 43210
+                    </a>
+                    <a href="mailto:hello@foodkeys.in" class="flex items-center gap-2 text-white/40 hover:text-terracotta text-sm transition-colors">
+                        <iconify-icon icon="lucide:mail" width="14"></iconify-icon>hello@foodkeys.in
+                    </a>
+                    <div class="flex items-center gap-2 text-white/40 text-sm">
+                        <iconify-icon icon="lucide:clock" width="14"></iconify-icon>11 AM – 11:30 PM
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-white/30 text-xs">© 2025 Foodkeys - The Restaurant. All rights reserved.</p>
+            <p class="text-white/20 text-xs">Crafted with <iconify-icon icon="fluent-emoji-flat:red-heart" width="12" class="align-[-2px]"></iconify-icon> in Palakkutty</p>
+        </div>
+    </div>
+</footer>
+
+<!-- ============ MOBILE BOTTOM BAR ============ -->
+<div class="mobile-bottom-bar fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-charcoal/10 px-4 py-2 justify-around items-center">
+    <a href="#menu" class="flex flex-col items-center gap-0.5 text-charcoal/50 hover:text-terracotta transition-colors py-1">
+        <iconify-icon icon="lucide:utensils" width="20"></iconify-icon>
+        <span class="text-[10px] font-medium">Menu</span>
+    </a>
+    <a href="#reels" class="flex flex-col items-center gap-0.5 text-charcoal/50 hover:text-terracotta transition-colors py-1">
+        <iconify-icon icon="lucide:play-circle" width="20"></iconify-icon>
+        <span class="text-[10px] font-medium">Reels</span>
+    </a>
+    <button onclick="openCart()" class="relative flex flex-col items-center gap-0.5 text-terracotta py-1">
+        <iconify-icon icon="lucide:shopping-bag" width="22"></iconify-icon>
+        <span class="text-[10px] font-semibold">Cart</span>
+        <span id="mobileCartBadge" class="absolute -top-1 right-0 w-4 h-4 bg-terracotta text-white text-[8px] font-bold rounded-full flex items-center justify-center hidden">0</span>
+    </button>
+    <a href="#location" class="flex flex-col items-center gap-0.5 text-charcoal/50 hover:text-terracotta transition-colors py-1">
+        <iconify-icon icon="lucide:map-pin" width="20"></iconify-icon>
+        <span class="text-[10px] font-medium">Location</span>
+    </a>
+</div>
+
+<!-- ============ FLOATING WHATSAPP BUTTON ============ -->
+<button onclick="openCart()" class="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-40 w-14 h-14 bg-[#25D366] hover:bg-[#1ebe57] rounded-full flex items-center justify-center shadow-2xl shadow-[#25D366]/30 transition-all hover:scale-105 whatsapp-pulse" aria-label="Order via WhatsApp">
+    <iconify-icon icon="lucide:message-circle" width="26" class="text-white"></iconify-icon>
+</button>
+
+<!-- ============ CART PANEL (SLIDE-IN) ============ -->
+<div id="cartOverlay" class="cart-overlay fixed inset-0 bg-black/50 z-50" onclick="closeCart()"></div>
+<div id="cartPanel" class="cart-panel fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+    <!-- Cart Header -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-charcoal/10">
+        <div>
+            <h2 class="font-playfair text-xl font-bold text-charcoal">Your Cart</h2>
+            <p class="text-xs text-charcoal/40 mt-0.5" id="cartItemCount">0 items</p>
+        </div>
+        <button onclick="closeCart()" class="w-10 h-10 rounded-xl bg-charcoal/5 hover:bg-charcoal/10 flex items-center justify-center transition-colors" aria-label="Close cart">
+            <iconify-icon icon="lucide:x" width="20" class="text-charcoal/60"></iconify-icon>
+        </button>
+    </div>
+
+    <!-- Cart Items -->
+    <div id="cartItems" class="flex-1 overflow-y-auto px-6 py-4">
+        <div id="cartEmpty" class="text-center py-16">
+            <iconify-icon icon="lucide:shopping-bag" width="48" class="text-charcoal/10 mb-3"></iconify-icon>
+            <p class="text-charcoal/30 font-medium">Your cart is empty</p>
+            <p class="text-charcoal/20 text-sm mt-1">Add items from the menu to get started</p>
+        </div>
+        <div id="cartItemsList" class="space-y-4"></div>
+    </div>
+
+    <!-- Cart Footer -->
+    <div id="cartFooter" class="border-t border-charcoal/10 px-6 py-5 bg-cream-light hidden">
+        <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-charcoal/50">Subtotal</span>
+            <span class="font-bold text-charcoal text-lg" id="cartSubtotal">₹0</span>
+        </div>
+        <p class="text-xs text-charcoal/30 mb-4">Delivery charges may apply based on location</p>
+        <button onclick="checkoutWhatsApp()" class="w-full h-12 bg-[#25D366] hover:bg-[#1ebe57] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-[#25D366]/20">
+            <iconify-icon icon="lucide:message-circle" width="18"></iconify-icon>
+            Checkout via WhatsApp
+        </button>
+        <button onclick="clearCart()" class="w-full h-10 mt-2 text-charcoal/40 hover:text-red-500 text-sm font-medium flex items-center justify-center gap-1 transition-colors">
+            <iconify-icon icon="lucide:trash-2" width="14"></iconify-icon>
+            Clear Cart
+        </button>
+    </div>
+</div>
+
+<!-- ============ WISHLIST PANEL ============ -->
+<div id="wishlistOverlay" class="cart-overlay fixed inset-0 bg-black/50 z-50" onclick="closeWishlistPanel()"></div>
+<div id="wishlistPanel" class="cart-panel fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-charcoal/10">
+        <div>
+            <h2 class="font-playfair text-xl font-bold text-charcoal">
+                <iconify-icon icon="lucide:heart" width="20" class="text-terracotta mr-1 align-[-2px]"></iconify-icon>
+                Wishlist
+            </h2>
+            <p class="text-xs text-charcoal/40 mt-0.5" id="wishlistCount">0 favorites</p>
+        </div>
+        <button onclick="closeWishlistPanel()" class="w-10 h-10 rounded-xl bg-charcoal/5 hover:bg-charcoal/10 flex items-center justify-center transition-colors" aria-label="Close wishlist">
+            <iconify-icon icon="lucide:x" width="20" class="text-charcoal/60"></iconify-icon>
+        </button>
+    </div>
+    <div id="wishlistItems" class="flex-1 overflow-y-auto px-6 py-4">
+        <div id="wishlistEmpty" class="text-center py-16">
+            <iconify-icon icon="lucide:heart" width="48" class="text-charcoal/10 mb-3"></iconify-icon>
+            <p class="text-charcoal/30 font-medium">No favorites yet</p>
+            <p class="text-charcoal/20 text-sm mt-1">Tap the heart icon on any dish to save it</p>
+        </div>
+        <div id="wishlistList" class="space-y-3"></div>
+    </div>
+</div>
+
+<!-- ============ SEARCH MODAL ============ -->
+<div id="searchModal" class="search-modal fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-start justify-center pt-[10vh] px-4" onclick="closeSearch(event)">
+    <div class="search-box w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-charcoal/10">
+            <iconify-icon icon="lucide:search" width="20" class="text-charcoal/30 shrink-0"></iconify-icon>
+            <input id="searchInput" type="text" placeholder="Search menu... (e.g. Poratta, Butter Chicken)" class="flex-1 bg-transparent outline-none text-charcoal text-sm placeholder:text-charcoal/30" oninput="handleSearch(this.value)" autocomplete="off">
+            <kbd class="hidden sm:inline-flex items-center px-2 py-0.5 bg-charcoal/5 rounded text-[10px] text-charcoal/40 font-mono">ESC</kbd>
+        </div>
+        <div id="searchResults" class="max-h-80 overflow-y-auto">
+            <div class="px-5 py-8 text-center">
+                <p class="text-charcoal/30 text-sm">Start typing to search the menu...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============ JAVASCRIPT ============ -->
+<script>
+// ==================== MENU DATA ====================
+const menuData = [
+    // Signature Beef Rib Biriyani
+    { id: 1, name: "Beef Rib Biriyani", desc: "Tender beef ribs slow-cooked in aromatic spices with basmati rice", price: 320, category: "biriyani", img: "foodkeys-beef-rib-biriyani", badge: "Signature", veg: false },
+    { id: 2, name: "Beef Rib Biriyani Special", desc: "Our signature biriyani with extra ribs, raita & special gravy", price: 420, category: "biriyani", img: "foodkeys-special-biriyani", badge: "Bestseller", veg: false },
+    { id: 3, name: "Chicken Biriyani", desc: "Classic Malabar-style chicken biriyani with fragrant rice", price: 250, category: "biriyani", img: "foodkeys-chicken-biriyani", badge: "", veg: false },
+    { id: 4, name: "Mutton Biriyani", desc: "Succulent mutton pieces layered with spiced basmati rice", price: 350, category: "biriyani", img: "foodkeys-mutton-biriyani", badge: "", veg: false },
+
+    // Brosted Chicken
+    { id: 5, name: "Brosted Chicken Half", desc: "Crispy fried chicken with our secret spice blend — half portion", price: 220, category: "brosted", img: "foodkeys-brosted-half", badge: "Popular", veg: false },
+    { id: 6, name: "Brosted Chicken Full", desc: "Whole crispy brosted chicken, golden & juicy", price: 400, category: "brosted", img: "foodkeys-brosted-full", badge: "Bestseller", veg: false },
+    { id: 7, name: "Brosted Chicken Wings", desc: "Crispy wings tossed in our signature sauce", price: 260, category: "brosted", img: "foodkeys-brosted-wings", badge: "", veg: false },
+    { id: 8, name: "Brosted Chicken Strips", desc: "Tender chicken strips with crispy coating & dip", price: 240, category: "brosted", img: "foodkeys-brosted-strips", badge: "", veg: false },
+
+    // Arabic Grills
+    { id: 9, name: "Arabic Grilled Chicken", desc: "Whole chicken marinated in Arabic spices & charcoal grilled", price: 380, category: "grills", img: "foodkeys-arabic-grill-chicken", badge: "Chef's Pick", veg: false },
+    { id: 10, name: "Lamb Kebab Platter", desc: "Assorted lamb kebabs with hummus & pita bread", price: 450, category: "grills", img: "foodkeys-lamb-kebab", badge: "", veg: false },
+    { id: 11, name: "Chicken Shawarma Roll", desc: "Juicy shawarma wrapped in kuboos with garlic sauce", price: 150, category: "grills", img: "foodkeys-shawarma-roll", badge: "Popular", veg: false },
+    { id: 12, name: "Mixed Grill Platter", desc: "Assorted grills — chicken, lamb & seekh kebab", price: 580, category: "grills", img: "foodkeys-mixed-grill", badge: "Premium", veg: false },
+    { id: 13, name: "Al Faham", desc: "Smoky charcoal-grilled chicken with Arabic marinade", price: 320, category: "grills", img: "foodkeys-al-faham", badge: "", veg: false },
+    { id: 14, name: "Mandi Chicken", desc: "Traditional Yemeni-style chicken with fragrant rice", price: 350, category: "grills", img: "foodkeys-mandi-chicken", badge: "", veg: false },
+
+    // Veg Specialities
+    { id: 15, name: "Vegetable Mango Curry", desc: "Ripe mango & mixed vegetables in creamy coconut curry", price: 180, category: "veg", img: "foodkeys-mango-curry", badge: "Seasonal", veg: true },
+    { id: 16, name: "Paneer Tikka Masala", desc: "Tandoori paneer in rich, creamy tomato gravy", price: 240, category: "veg", img: "foodkeys-paneer-tikka", badge: "", veg: true },
+    { id: 17, name: "Mushroom Pepper Fry", desc: "Mushrooms tossed with black pepper & curry leaves", price: 210, category: "veg", img: "foodkeys-mushroom-pepper", badge: "", veg: true },
+    { id: 18, name: "Veg Biriyani", desc: "Mixed vegetables & basmati rice cooked with whole spices", price: 180, category: "veg", img: "foodkeys-veg-biriyani", badge: "", veg: true },
+    { id: 19, name: "Dal Makhani", desc: "Creamy black lentils slow-cooked with butter & cream", price: 190, category: "veg", img: "foodkeys-dal-makhani", badge: "", veg: true },
+    { id: 20, name: "Palak Paneer", desc: "Cottage cheese cubes in creamy spinach gravy", price: 220, category: "veg", img: "foodkeys-palak-paneer", badge: "", veg: true },
+
+    // Sides & More
+    { id: 21, name: "Butter Chicken", desc: "Tender chicken in rich, buttery tomato cream sauce", price: 290, category: "sides", img: "foodkeys-butter-chicken", badge: "Classic", veg: false },
+    { id: 22, name: "Chicken Poratta", desc: "Flaky layered poratta served with chicken curry", price: 130, category: "sides", img: "foodkeys-chicken-poratta", badge: "Popular", veg: false },
+    { id: 23, name: "Beef Roast", desc: "Spicy Kerala-style beef roast with coconut slices", price: 280, category: "sides", img: "foodkeys-beef-roast", badge: "", veg: false },
+    { id: 24, name: "Porotta & Beef", desc: "Flaky porottas with our signature beef curry", price: 150, category: "sides", img: "foodkeys-porotta-beef", badge: "", veg: false },
+    { id: 25, name: "French Fries", desc: "Crispy golden fries with seasoning & ketchup", price: 120, category: "sides", img: "foodkeys-french-fries", badge: "", veg: true },
+    { id: 26, name: "Fresh Lime Soda", desc: "Refreshing lime soda — sweet or salted", price: 60, category: "sides", img: "foodkeys-lime-soda", badge: "", veg: true },
+    { id: 27, name: "Mango Lassi", desc: "Creamy yogurt drink blended with ripe mango", price: 90, category: "sides", img: "foodkeys-mango-lassi", badge: "", veg: true },
+    { id: 28, name: "Kulfi Falooda", desc: "Traditional Indian ice cream with falooda noodles & rose syrup", price: 130, category: "sides", img: "foodkeys-kulfi-falooda", badge: "Dessert", veg: true },
+];
+
+// ==================== STATE ====================
+let cart = {};
+let wishlist = new Set();
+let currentCategory = 'all';
+
+// ==================== RENDER MENU ====================
+function renderMenu(category = 'all') {
+    const grid = document.getElementById('menuGrid');
+    const empty = document.getElementById('menuEmpty');
+    const items = category === 'all' ? menuData : menuData.filter(i => i.category === category);
+
+    if (items.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+
+    grid.innerHTML = items.map((item, idx) => {
+        const inCart = cart[item.id] || 0;
+        const isLiked = wishlist.has(item.id);
+        return `
+        <div class="menu-card bg-white rounded-2xl border border-charcoal/5 overflow-hidden group fade-up" style="--i:${idx}" data-id="${item.id}">
+            <div class="relative h-44 overflow-hidden">
+                <img src="https://picsum.photos/seed/${item.img}/600/400" alt="${item.name}" class="menu-img w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                ${item.badge ? `<span class="absolute top-3 left-3 bg-terracotta text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wide">${item.badge}</span>` : ''}
+                ${item.veg ? `<span class="absolute top-3 right-3 w-5 h-5 bg-white rounded border-2 border-green-600 flex items-center justify-center"><span class="w-2 h-2 bg-green-600 rounded-full"></span></span>` : `<span class="absolute top-3 right-3 w-5 h-5 bg-white rounded border-2 border-red-500 flex items-center justify-center"><span class="w-2 h-2 bg-red-500 rounded-full"></span></span>`}
+                <button class="heart-btn ${isLiked ? 'liked' : ''} absolute bottom-3 right-3 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110" onclick="toggleWishlist(${item.id})" aria-label="${isLiked ? 'Remove from' : 'Add to'} wishlist">
+                    <iconify-icon icon="${isLiked ? 'lucide:heart' : 'lucide:heart'}" width="15"></iconify-icon>
+                </button>
+            </div>
+            <div class="p-4">
+                <h3 class="font-playfair text-base font-bold text-charcoal leading-tight mb-1">${item.name}</h3>
+                <p class="text-charcoal/40 text-xs leading-relaxed mb-3 line-clamp-2">${item.desc}</p>
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-terracotta text-lg">₹${item.price}</span>
+                    ${inCart > 0 ? `
+                    <div class="flex items-center gap-1.5">
+                        <button class="qty-btn w-8 h-8 rounded-lg border border-charcoal/10 flex items-center justify-center text-sm font-bold text-charcoal" onclick="updateCart(${item.id}, -1)">−</button>
+                        <span class="w-7 text-center text-sm font-bold text-charcoal">${inCart}</span>
+                        <button class="qty-btn w-8 h-8 rounded-lg border border-charcoal/10 flex items-center justify-center text-sm font-bold text-charcoal" onclick="updateCart(${item.id}, 1)">+</button>
+                    </div>
+                    ` : `
+                    <button class="h-8 px-4 bg-charcoal hover:bg-charcoal/80 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all hover:shadow-md" onclick="addToCart(${item.id})">
+                        <iconify-icon icon="lucide:plus" width="14"></iconify-icon>Add
+                    </button>
+                    `}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Re-observe for animations
+    observeElements();
+}
+
+// ==================== CATEGORY FILTER ====================
+function filterCategory(category, btn) {
+    currentCategory = category;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderMenu(category);
+}
+
+// ==================== CART LOGIC ====================
+function addToCart(id) {
+    cart[id] = (cart[id] || 0) + 1;
+    updateCartUI();
+    renderMenu(currentCategory);
+    const item = menuData.find(i => i.id === id);
+    showToast(`${item.name} added to cart ✓`);
+}
+
+function updateCart(id, delta) {
+    cart[id] = (cart[id] || 0) + delta;
+    if (cart[id] <= 0) delete cart[id];
+    updateCartUI();
+    renderMenu(currentCategory);
+}
+
+function removeFromCart(id) {
+    delete cart[id];
+    updateCartUI();
+    renderMenu(currentCategory);
+}
+
+function clearCart() {
+    cart = {};
+    updateCartUI();
+    renderMenu(currentCategory);
+    showToast('Cart cleared');
+}
+
+function getCartTotal() {
+    return Object.entries(cart).reduce((sum, [id, qty]) => {
+        const item = menuData.find(i => i.id === parseInt(id));
+        return sum + (item ? item.price * qty : 0);
+    }, 0);
+}
+
+function getCartCount() {
+    return Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+}
+
+function updateCartUI() {
+    const count = getCartCount();
+    const total = getCartTotal();
+
+    // Navbar badge
+    document.getElementById('cartCount').textContent = count;
+    // Mobile badge
+    const mb = document.getElementById('mobileCartBadge');
+    if (count > 0) { mb.classList.remove('hidden'); mb.textContent = count; }
+    else { mb.classList.add('hidden'); }
+
+    // Cart panel
+    document.getElementById('cartItemCount').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+    const cartEmpty = document.getElementById('cartEmpty');
+    const cartItemsList = document.getElementById('cartItemsList');
+    const cartFooter = document.getElementById('cartFooter');
+
+    if (count === 0) {
+        cartEmpty.classList.remove('hidden');
+        cartItemsList.innerHTML = '';
+        cartFooter.classList.add('hidden');
+    } else {
+        cartEmpty.classList.add('hidden');
+        cartFooter.classList.remove('hidden');
+        document.getElementById('cartSubtotal').textContent = `₹${total}`;
+
+        cartItemsList.innerHTML = Object.entries(cart).map(([id, qty]) => {
+            const item = menuData.find(i => i.id === parseInt(id));
+            if (!item) return '';
+            return `
+            <div class="flex gap-3 items-start">
+                <img src="https://picsum.photos/seed/${item.img}/200/200" alt="${item.name}" class="w-16 h-16 rounded-xl object-cover shrink-0">
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-charcoal text-sm truncate">${item.name}</h4>
+                    <p class="text-terracotta text-sm font-bold">₹${item.price * qty}</p>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <button class="qty-btn w-7 h-7 rounded-md border border-charcoal/10 flex items-center justify-center text-xs font-bold text-charcoal" onclick="updateCart(${item.id}, -1)">−</button>
+                        <span class="text-xs font-bold text-charcoal w-5 text-center">${qty}</span>
+                        <button class="qty-btn w-7 h-7 rounded-md border border-charcoal/10 flex items-center justify-center text-xs font-bold text-charcoal" onclick="updateCart(${item.id}, 1)">+</button>
+                        <button onclick="removeFromCart(${item.id})" class="ml-auto text-charcoal/30 hover:text-red-500 transition-colors" aria-label="Remove item">
+                            <iconify-icon icon="lucide:trash-2" width="14"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Order preview section
+    document.getElementById('orderPreviewCount').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+    document.getElementById('orderPreviewTotal').textContent = `₹${total}`;
+    const previewItems = document.getElementById('orderPreviewItems');
+    if (count === 0) {
+        previewItems.innerHTML = `<div class="text-center py-8"><iconify-icon icon="lucide:shopping-bag" width="32" class="text-charcoal/15 mb-2"></iconify-icon><p class="text-charcoal/30 text-sm">Your cart is empty</p><a href="#menu" class="text-terracotta text-xs font-semibold mt-1 inline-block hover:underline">Browse Menu →</a></div>`;
+    } else {
+        previewItems.innerHTML = Object.entries(cart).slice(0, 4).map(([id, qty]) => {
+            const item = menuData.find(i => i.id === parseInt(id));
+            if (!item) return '';
+            return `<div class="flex items-center justify-between py-2 border-b border-charcoal/5 last:border-0"><div class="flex items-center gap-3"><img src="https://picsum.photos/seed/${item.img}/100/100" alt="${item.name}" class="w-10 h-10 rounded-lg object-cover"><div><p class="text-sm font-medium text-charcoal truncate max-w-[140px]">${item.name}</p><p class="text-xs text-charcoal/40">x${qty}</p></div></div><span class="text-sm font-bold text-charcoal">₹${item.price * qty}</span></div>`;
+        }).join('') + (Object.keys(cart).length > 4 ? `<p class="text-xs text-charcoal/30 text-center mt-2">+${Object.keys(cart).length - 4} more items</p>` : '');
+    }
+}
+
+// ==================== CART PANEL ====================
+function openCart() {
+    document.getElementById('cartPanel').classList.add('open');
+    document.getElementById('cartOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+    document.getElementById('cartPanel').classList.remove('open');
+    document.getElementById('cartOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// ==================== WISHLIST ====================
+function toggleWishlist(id) {
+    if (wishlist.has(id)) {
+        wishlist.delete(id);
+        showToast('Removed from wishlist');
+    } else {
+        wishlist.add(id);
+        showToast('Added to wishlist ♥');
+    }
+    updateWishlistUI();
+    renderMenu(currentCategory);
+}
+
+function updateWishlistUI() {
+    const badge = document.getElementById('wishlistBadge');
+    if (wishlist.size > 0) { badge.classList.remove('hidden'); badge.textContent = wishlist.size; }
+    else { badge.classList.add('hidden'); }
+    document.getElementById('wishlistCount').textContent = `${wishlist.size} favorite${wishlist.size !== 1 ? 's' : ''}`;
+
+    const list = document.getElementById('wishlistList');
+    const empty = document.getElementById('wishlistEmpty');
+    if (wishlist.size === 0) {
+        empty.classList.remove('hidden');
+        list.innerHTML = '';
+    } else {
+        empty.classList.add('hidden');
+        list.innerHTML = [...wishlist].map(id => {
+            const item = menuData.find(i => i.id === id);
+            if (!item) return '';
+            return `
+            <div class="flex gap-3 items-center p-3 bg-cream rounded-xl">
+                <img src="https://picsum.photos/seed/${item.img}/100/100" alt="${item.name}" class="w-14 h-14 rounded-lg object-cover shrink-0">
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-charcoal text-sm truncate">${item.name}</h4>
+                    <p class="text-terracotta text-sm font-bold">₹${item.price}</p>
+                </div>
+                <div class="flex gap-1.5">
+                    <button onclick="addToCart(${item.id}); closeWishlistPanel();" class="w-8 h-8 bg-terracotta text-white rounded-lg flex items-center justify-center hover:bg-terracotta-dark transition-colors" title="Add to cart" aria-label="Add to cart">
+                        <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+                    </button>
+                    <button onclick="toggleWishlist(${item.id})" class="w-8 h-8 bg-charcoal/5 text-charcoal/40 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors" title="Remove" aria-label="Remove from wishlist">
+                        <iconify-icon icon="lucide:x" width="14"></iconify-icon>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+}
+
+function toggleWishlistPanel() {
+    const panel = document.getElementById('wishlistPanel');
+    const overlay = document.getElementById('wishlistOverlay');
+    if (panel.classList.contains('open')) {
+        closeWishlistPanel();
+    } else {
+        panel.classList.add('open');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeWishlistPanel() {
+    document.getElementById('wishlistPanel').classList.remove('open');
+    document.getElementById('wishlistOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// ==================== WHATSAPP CHECKOUT ====================
+function checkoutWhatsApp() {
+    if (getCartCount() === 0) {
+        showToast('Your cart is empty! Add items first.');
+        return;
+    }
+
+    const phone = '919876543210'; // Foodkeys WhatsApp number
+    let message = '🍽️ *Foodkeys Order*\n\n';
+    Object.entries(cart).forEach(([id, qty]) => {
+        const item = menuData.find(i => i.id === parseInt(id));
+        if (item) message += `• ${item.name} x${qty} — ₹${item.price * qty}\n`;
+    });
+    message += `\n*Subtotal: ₹${getCartTotal()}*\n\nPlease confirm my order! 🙏`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    showToast('Opening WhatsApp... 📱');
+}
+
+// ==================== SEARCH ====================
+function openSearch() {
+    document.getElementById('searchModal').classList.add('open');
+    document.getElementById('searchInput').focus();
+    document.body.style.overflow = 'hidden';
+}
+function closeSearch(e) {
+    if (e && e.target !== document.getElementById('searchModal')) return;
+    document.getElementById('searchModal').classList.remove('open');
+    document.getElementById('searchInput').value = '';
+    document.body.style.overflow = '';
+}
+
+function fuzzyMatch(str, query) {
+    const s = str.toLowerCase();
+    const q = query.toLowerCase();
+    // Direct includes
+    if (s.includes(q)) return true;
+    // Fuzzy: each char of query appears in order
+    let qi = 0;
+    for (let i = 0; i < s.length && qi < q.length; i++) {
+        if (s[i] === q[qi]) qi++;
+    }
+    return qi === q.length;
+}
+
+function handleSearch(query) {
+    const results = document.getElementById('searchResults');
+    if (!query.trim()) {
+        results.innerHTML = `<div class="px-5 py-8 text-center"><p class="text-charcoal/30 text-sm">Start typing to search the menu...</p></div>`;
+        return;
+    }
+
+    const matches = menuData.filter(item =>
+        fuzzyMatch(item.name, query) || fuzzyMatch(item.desc, query) || fuzzyMatch(item.category, query)
+    );
+
+    if (matches.length === 0) {
+        results.innerHTML = `<div class="px-5 py-8 text-center"><iconify-icon icon="lucide:search-x" width="32" class="text-charcoal/15 mb-2"></iconify-icon><p class="text-charcoal/30 text-sm">No items found for "${query}"</p></div>`;
+        return;
+    }
+
+    results.innerHTML = matches.map(item => `
+        <button class="w-full flex items-center gap-3 px-5 py-3 hover:bg-cream transition-colors text-left" onclick="searchSelect(${item.id})">
+            <img src="https://picsum.photos/seed/${item.img}/100/100" alt="${item.name}" class="w-10 h-10 rounded-lg object-cover shrink-0">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-charcoal truncate">${item.name}</p>
+                <p class="text-xs text-charcoal/40 truncate">${item.desc}</p>
+            </div>
+            <span class="text-sm font-bold text-terracotta shrink-0">₹${item.price}</span>
+        </button>
+    `).join('');
+}
+
+function searchSelect(id) {
+    document.getElementById('searchModal').classList.remove('open');
+    document.getElementById('searchInput').value = '';
+    document.body.style.overflow = '';
+    addToCart(id);
+}
+
+// ==================== TOAST ====================
+function showToast(message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast bg-charcoal text-white text-sm font-medium px-5 py-3 rounded-xl shadow-2xl pointer-events-auto flex items-center gap-2 max-w-xs';
+    toast.innerHTML = `<iconify-icon icon="lucide:check-circle" width="16" class="text-terracotta shrink-0"></iconify-icon><span>${message}</span>`;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 2500);
+}
+
+// ==================== INTERSECTION OBSERVER ====================
+function observeElements() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.fade-up, .fade-left, .fade-right, .scale-in').forEach(el => {
+        observer.observe(el);
+    });
+}
+
+// ==================== KEYBOARD SHORTCUTS ====================
+document.addEventListener('keydown', (e) => {
+    // Ctrl+K or Cmd+K -> Search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        openSearch();
+    }
+    // Escape -> Close modals
+    if (e.key === 'Escape') {
+        document.getElementById('searchModal').classList.remove('open');
+        document.getElementById('searchInput').value = '';
+        closeCart();
+        closeWishlistPanel();
+        document.body.style.overflow = '';
+    }
+});
+
+// ==================== NAVBAR SCROLL ====================
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+    const nav = document.getElementById('navbar');
+    const scroll = window.scrollY;
+    if (scroll > 100) {
+        nav.style.boxShadow = '0 4px 30px rgba(0,0,0,0.08)';
+    } else {
+        nav.style.boxShadow = 'none';
+    }
+    lastScroll = scroll;
+});
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+    renderMenu('all');
+    updateCartUI();
+    updateWishlistUI();
+    observeElements();
+});
+</script>
+
+</body>
+</html>
